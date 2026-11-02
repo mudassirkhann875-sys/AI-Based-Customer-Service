@@ -1,0 +1,1104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0b1020">
+<title>ResolveAI — Intelligent Customer Service Agent</title>
+<style>
+/* =========================================================
+   RESOLVEAI — CUSTOMER SERVICE RESOLUTION AGENT
+   Single-file application: HTML + CSS + JavaScript
+   Frontend demo. Real LLM/RAG requires a secure backend.
+   ========================================================= */
+:root{
+  --bg:#0a1020;--sidebar:#0d1729;--panel:#111d31;--panel2:#17263d;
+  --text:#eef5ff;--muted:#91a5c4;--line:#263954;--blue:#5792ff;
+  --cyan:#36d9e8;--green:#42d99b;--yellow:#ffcb70;--red:#ff7d91;
+  --shadow:0 16px 40px rgba(0,0,0,.18);--radius:16px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:14px;line-height:1.55}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+a{color:var(--cyan);text-decoration:none}
+.app{min-height:100vh;display:flex}
+.sidebar{width:258px;flex:0 0 258px;background:var(--sidebar);border-right:1px solid var(--line);padding:22px 15px;display:flex;flex-direction:column;gap:8px}
+.brand{display:flex;align-items:center;gap:11px;padding:4px 9px 25px}
+.brand-mark{width:42px;height:42px;border-radius:14px;background:linear-gradient(135deg,var(--blue),var(--cyan));display:grid;place-items:center;color:#071321;font-weight:900;font-size:23px;box-shadow:0 8px 25px #2466b544}
+.brand-name{font-size:21px;font-weight:850;letter-spacing:-.7px}
+.brand-name span{color:var(--cyan)}
+.brand-sub{font-size:10px;color:var(--muted);letter-spacing:1.3px}
+.nav-label{font-size:10px;letter-spacing:1.5px;color:#7087a9;padding:18px 10px 7px}
+.nav-btn{display:flex;align-items:center;gap:12px;width:100%;border:1px solid transparent;background:transparent;color:#a9bad4;text-align:left;padding:11px 12px;border-radius:11px;margin:2px 0;transition:.18s}
+.nav-btn .nav-icon{width:20px;text-align:center;font-size:17px}
+.nav-btn:hover{background:#172740;color:white}
+.nav-btn.active{background:linear-gradient(90deg,#1b3b61,#172a45);border-color:#294e78;color:white}
+.nav-btn.active .nav-icon{color:var(--cyan)}
+.nav-count{margin-left:auto;font-size:11px;background:#263d5c;border-radius:20px;padding:2px 7px}
+.sidebar-spacer{flex:1}
+.sidebar-status{border:1px solid var(--line);background:#111e32;border-radius:13px;padding:13px;font-size:12px;color:var(--muted)}
+.status-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--green);margin-right:7px;box-shadow:0 0 10px #42d99b77}
+.sidebar-user{display:flex;align-items:center;gap:10px;padding:13px 7px 0;border-top:1px solid var(--line);margin-top:10px}
+.avatar{width:37px;height:37px;display:grid;place-items:center;border-radius:12px;background:linear-gradient(135deg,#2c4f83,#257f89);font-weight:800}
+.user-meta strong{display:block;font-size:12px}
+.user-meta small{color:var(--muted);font-size:11px}
+.main{flex:1;min-width:0}
+.topbar{height:76px;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:0 28px;border-bottom:1px solid var(--line);background:#0d1729dd;position:sticky;top:0;z-index:10;backdrop-filter:blur(15px)}
+.top-left{display:flex;align-items:center;gap:12px;min-width:0}
+.top-title{font-size:16px;font-weight:750}
+.top-sub{font-size:11px;color:var(--muted)}
+.top-actions{display:flex;align-items:center;gap:10px}
+.icon-btn{border:1px solid var(--line);background:var(--panel);color:var(--text);width:38px;height:38px;border-radius:11px;display:grid;place-items:center}
+.icon-btn:hover{border-color:var(--blue)}
+.online-pill{font-size:11px;color:var(--green);padding:7px 10px;border-radius:20px;background:#15372f}
+.mobile-menu{display:none}
+.content{max-width:1600px;margin:auto;padding:27px}
+.page{display:none;animation:fadeIn .22s ease}
+.page.active{display:block}
+@keyframes fadeIn{from{opacity:.4;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+.page-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:22px}
+h1{font-size:27px;line-height:1.2;letter-spacing:-.8px;margin:0 0 8px}
+h2{font-size:17px;letter-spacing:-.2px;margin:0}
+h3{font-size:14px;margin:0}
+p{margin:8px 0}
+.muted{color:var(--muted)}
+.tiny{font-size:11px}
+.small{font-size:12px}
+.eyebrow{font-size:10px;color:var(--cyan);letter-spacing:1.5px;font-weight:800}
+.btn{border:0;background:var(--blue);color:#fff;padding:10px 14px;border-radius:10px;font-weight:700;transition:.18s;display:inline-flex;align-items:center;justify-content:center;gap:7px}
+.btn:hover{filter:brightness(1.12);transform:translateY(-1px)}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.btn.secondary{background:#263b59;color:#dce9ff}
+.btn.ghost{background:transparent;border:1px solid var(--line);color:var(--text)}
+.btn.success{background:#176b50}
+.btn.danger{background:#733849}
+.btn.sm{font-size:11px;padding:7px 10px;border-radius:8px}
+.btn.block{width:100%}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:20px;min-width:0;box-shadow:var(--shadow)}
+.card-header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}
+.grid{display:grid;gap:16px}
+.stats-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+.stat-card{padding:19px;position:relative;overflow:hidden}
+.stat-top{display:flex;justify-content:space-between;align-items:center;color:var(--muted);font-size:12px}
+.stat-icon{width:37px;height:37px;display:grid;place-items:center;border-radius:12px;background:#203653;color:var(--cyan);font-size:17px}
+.stat-value{font-size:31px;font-weight:850;letter-spacing:-1px;margin:12px 0 3px}
+.stat-foot{font-size:11px;color:var(--muted)}
+.stat-accent{color:var(--green)}
+.hero{padding:28px;border:1px solid #294d75;border-radius:20px;background:radial-gradient(circle at 90% 0%,#1d657c55,transparent 32%),linear-gradient(120deg,#162d4c,#12233b 58%,#143746);position:relative;overflow:hidden;margin-bottom:19px}
+.hero:after{content:"✦";position:absolute;right:7%;top:7%;font-size:100px;color:#53d8ed13;pointer-events:none}
+.hero h2{font-size:26px;margin:10px 0}
+.hero p{max-width:670px;color:#bfd0e8;margin-bottom:18px}
+.hero-actions{display:flex;gap:9px;flex-wrap:wrap}
+.pill{display:inline-flex;align-items:center;gap:5px;padding:4px 9px;border-radius:30px;background:#263a56;color:#cbdaf0;font-size:10px;font-weight:750}
+.pill.green{background:#164638;color:#80e8b7}
+.pill.yellow{background:#4b3a20;color:#ffd27b}
+.pill.red{background:#512d3c;color:#ff9caf}
+.pill.blue{background:#1d3c66;color:#a6ccff}
+.two-col{grid-template-columns:minmax(0,1.25fr) minmax(300px,.85fr);margin-top:17px}
+.three-col{grid-template-columns:repeat(3,minmax(0,1fr))}
+.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 13px}
+.field{margin-bottom:12px}
+.field.full{grid-column:1/-1}
+label{display:block;color:#c8d7eb;font-size:12px;margin-bottom:5px}
+input,select,textarea{width:100%;padding:11px 12px;color:var(--text);background:#0b1628;border:1px solid #2b405e;border-radius:10px;outline:none}
+input::placeholder,textarea::placeholder{color:#627794}
+input:focus,select:focus,textarea:focus{border-color:var(--blue);box-shadow:0 0 0 3px #5792ff19}
+textarea{min-height:95px;resize:vertical}
+input[type="checkbox"]{width:auto;accent-color:var(--blue)}
+.toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:15px}
+.toolbar .grow{flex:1;min-width:170px}
+.toolbar input,.toolbar select{margin:0}
+.issue-list{display:grid;gap:10px}
+.issue-card{border:1px solid var(--line);background:#0e192b;border-radius:12px;padding:14px}
+.issue-title-row{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.issue-title{font-weight:750;font-size:13px;overflow-wrap:anywhere}
+.issue-meta{font-size:11px;color:var(--muted);margin:5px 0 9px}
+.issue-desc{font-size:12px;color:#b3c4dc;overflow-wrap:anywhere}
+.issue-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}
+.empty{padding:25px;text-align:center;color:var(--muted);border:1px dashed #304560;border-radius:12px}
+.empty-icon{font-size:28px;margin-bottom:8px}
+.split{display:grid;grid-template-columns:minmax(0,1fr) minmax(260px,.7fr);gap:16px}
+.chat-layout{display:grid;grid-template-columns:minmax(0,1fr) 290px;gap:16px}
+.chat-card{padding:0;overflow:hidden;display:flex;flex-direction:column;min-height:590px}
+.chat-head{padding:17px 20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:10px;background:#142239}
+.chat-brand{display:flex;align-items:center;gap:10px}
+.bot-avatar{width:38px;height:38px;display:grid;place-items:center;background:linear-gradient(135deg,#397ce1,#31bfc9);border-radius:13px;color:white;font-size:20px}
+.chat-messages{flex:1;min-height:320px;max-height:calc(100vh - 370px);overflow-y:auto;padding:20px;background:#0b1526}
+.message{display:flex;gap:9px;margin:14px 0;align-items:flex-start}
+.message.user{flex-direction:row-reverse}
+.message-avatar{flex:0 0 29px;height:29px;border-radius:10px;display:grid;place-items:center;background:#203c60;font-size:12px}
+.message.user .message-avatar{background:#285eac}
+.message-body{max-width:min(82%,700px);padding:12px 14px;border:1px solid #2a405c;background:#16253a;border-radius:4px 13px 13px 13px;white-space:pre-wrap;overflow-wrap:anywhere;font-size:13px;line-height:1.65}
+.message.user .message-body{background:#2458a1;border-color:#326dc0;border-radius:13px 4px 13px 13px}
+.message-time{font-size:10px;color:#8196b5;margin-top:5px}
+.chat-compose{padding:15px;border-top:1px solid var(--line);background:#101c2f}
+.compose-row{display:flex;gap:9px;align-items:flex-end}
+.compose-row textarea{min-height:46px;max-height:140px;margin:0;resize:vertical}
+.compose-note{font-size:10px;color:#7187a6;margin-top:8px}
+.suggestions{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}
+.suggestion{background:#1b2d46;border:1px solid #2b4363;border-radius:30px;padding:7px 10px;color:#c8d9ef;font-size:11px}
+.suggestion:hover{border-color:var(--cyan);color:white}
+.chat-side .card{margin-bottom:13px}
+.quick-prompt{width:100%;text-align:left;border:1px solid var(--line);background:#0e192b;color:#d7e4f7;padding:11px;border-radius:10px;margin:5px 0;font-size:12px}
+.quick-prompt:hover{border-color:var(--blue)}
+.article-card{padding:16px;border:1px solid var(--line);border-radius:12px;background:#0e192b;margin:10px 0}
+.article-card h3{margin:8px 0}
+.article-card p{font-size:12px;color:#a9bdd7}
+.article-tags{display:flex;gap:6px;flex-wrap:wrap}
+.policy-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
+.policy-card{padding:17px;border:1px solid var(--line);background:#0e192b;border-radius:13px}
+.policy-card h3{margin:8px 0}
+.policy-card p{font-size:12px;color:#a9bdd7}
+.progress{height:7px;border-radius:20px;background:#263650;overflow:hidden;margin:10px 0}
+.progress span{height:100%;display:block;background:linear-gradient(90deg,var(--blue),var(--cyan));border-radius:20px}
+.table-wrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:600px}
+th,td{text-align:left;padding:12px 10px;border-bottom:1px solid var(--line);font-size:12px}
+th{color:#91a7c7;font-weight:650}
+td{color:#d4e0f2}
+.toast-container{position:fixed;right:20px;bottom:20px;z-index:100;display:grid;gap:8px}
+.toast{background:#1b2b43;border:1px solid #345171;color:#f0f6ff;padding:12px 16px;border-radius:11px;box-shadow:var(--shadow);max-width:330px;animation:fadeIn .2s}
+.toast.error{border-color:#a24b60}
+.modal-backdrop{position:fixed;inset:0;background:#030711c9;display:none;place-items:center;padding:20px;z-index:80}
+.modal-backdrop.open{display:grid}
+.modal{width:min(650px,100%);max-height:90vh;overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:17px;padding:22px;box-shadow:var(--shadow)}
+.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:17px}
+.kbd{font-family:monospace;border:1px solid #344b69;border-radius:5px;padding:2px 5px;color:#a7bad5}
+.divider{border:0;border-top:1px solid var(--line);margin:17px 0}
+.feature-row{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-bottom:1px solid #243650}
+.feature-icon{width:36px;height:36px;border-radius:11px;background:#203853;display:grid;place-items:center;color:var(--cyan);flex-shrink:0}
+.feature-row:last-child{border-bottom:0}
+.footer{text-align:center;font-size:10px;color:#657c9c;padding:25px 0 8px}
+.hidden{display:none!important}
+.notice{border:1px solid #5b4a29;background:#30291c;color:#f5d79c;border-radius:11px;padding:12px 14px;font-size:12px}
+.success-note{border:1px solid #225a49;background:#112c27;color:#9be5c5;border-radius:11px;padding:12px 14px;font-size:12px}
+.kpi-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:12px 0}
+.kpi-row span:first-child{color:var(--muted);font-size:12px}
+.kpi-row strong{font-size:13px}
+.chart-bars{height:130px;display:flex;align-items:flex-end;gap:9px;padding-top:15px}
+.chart-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:7px;height:100%;justify-content:flex-end}
+.chart-bar{width:min(35px,80%);min-height:4px;border-radius:6px 6px 2px 2px;background:linear-gradient(180deg,var(--cyan),var(--blue));}
+.chart-label{font-size:10px;color:var(--muted)}
+@media(max-width:1150px){.stats-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.chat-layout{grid-template-columns:minmax(0,1fr) 250px}.two-col{grid-template-columns:1fr}}
+@media(max-width:850px){.sidebar{width:225px;flex-basis:225px}.content{padding:20px}.chat-layout{grid-template-columns:1fr}.chat-side{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.chat-side .card{margin:0}.split{grid-template-columns:1fr}}
+@media(max-width:650px){
+  .app{display:block}.sidebar{position:fixed;z-index:50;left:-280px;top:0;bottom:0;width:258px;transition:left .2s;box-shadow:var(--shadow)}
+  .sidebar.open{left:0}.mobile-menu{display:grid}.topbar{height:67px;padding:0 14px}.topbar .top-sub{display:none}.online-pill{display:none}.content{padding:15px}
+  .page-heading{display:block}.page-heading>.btn{margin-top:12px}h1{font-size:23px}.stats-grid{gap:10px}.stat-card{padding:14px}.stat-value{font-size:26px}.hero{padding:20px}.hero h2{font-size:22px}.two-col,.three-col,.policy-grid,.form-grid{grid-template-columns:1fr}.field.full{grid-column:auto}
+  .chat-side{grid-template-columns:1fr}.chat-messages{max-height:52vh;padding:13px}.message-body{max-width:88%}.top-actions{gap:5px}.top-title{font-size:14px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="brand-mark">✦</div>
+      <div><div class="brand-name">Resolve<span>AI</span></div><div class="brand-sub">CUSTOMER EXPERIENCE</div></div>
+    </div>
+    <div class="nav-label">WORKSPACE</div>
+    <button class="nav-btn active" data-page="dashboard"><span class="nav-icon">▦</span>Dashboard</button>
+    <button class="nav-btn" data-page="issues"><span class="nav-icon">▤</span>Issue Management <span class="nav-count" id="navOpenCount">0</span></button>
+    <button class="nav-btn" data-page="chat"><span class="nav-icon">✧</span>AI Support Chat</button>
+    <button class="nav-btn" data-page="knowledge"><span class="nav-icon">⌕</span>Knowledge Base</button>
+    <button class="nav-btn" data-page="policies"><span class="nav-icon">◈</span>Service Policies</button>
+    <div class="nav-label">INSIGHTS & TOOLS</div>
+    <button class="nav-btn" data-page="analytics"><span class="nav-icon">▥</span>Analytics</button>
+    <button class="nav-btn" data-page="feedback"><span class="nav-icon">☆</span>Feedback Center</button>
+    <button class="nav-btn" data-page="settings"><span class="nav-icon">⚙</span>Settings & Data</button>
+    <button class="nav-btn" data-page="about"><span class="nav-icon">ⓘ</span>About Project</button>
+    <div class="sidebar-spacer"></div>
+    <div class="sidebar-status"><div style="color:white;font-weight:750;margin-bottom:5px"><span class="status-dot"></span>Demo system online</div><div>Local browser storage enabled</div><div class="tiny" style="margin-top:5px">No external AI connection configured</div></div>
+    <div class="sidebar-user"><div class="avatar">RA</div><div class="user-meta"><strong>Support Workspace</strong><small>Prototype administrator</small></div></div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <div class="top-left">
+        <button class="icon-btn mobile-menu" id="mobileMenu" aria-label="Open navigation">☰</button>
+        <div><div class="top-title" id="topTitle">Dashboard Overview</div><div class="top-sub">AI-Based Customer Service Resolution Agent</div></div>
+      </div>
+      <div class="top-actions">
+        <span class="online-pill"><span class="status-dot"></span>All systems operational</span>
+        <button class="icon-btn" id="helpButton" title="Help">?</button>
+        <button class="icon-btn" id="newIssueTop" title="Create issue">＋</button>
+      </div>
+    </header>
+
+    <div class="content">
+      <!-- Dashboard -->
+      <section class="page active" id="page-dashboard">
+        <div class="page-heading"><div><div class="eyebrow">YOUR SUPPORT COMMAND CENTER</div><h1>Customer Support Overview</h1><p class="muted">Understand customer problems, find answers, and manage resolutions in one workspace.</p></div><button class="btn" onclick="openIssueModal()">＋ Create new issue</button></div>
+        <div class="hero">
+          <span class="pill blue">✦ SMART RESOLUTION AGENT</span>
+          <h2>Better answers. Faster resolutions.</h2>
+          <p>Ask the assistant about common problems, search your knowledge library, or create a case for follow-up. The assistant can use a connected LLM and retrieved project knowledge, with a local fallback.</p>
+          <div class="hero-actions"><button class="btn" onclick="navigate('chat')">✧ Talk to ResolveAI</button><button class="btn secondary" onclick="navigate('knowledge')">⌕ Explore knowledge base</button><button class="btn ghost" onclick="navigate('issues')">Manage cases →</button></div>
+        </div>
+        <div class="grid stats-grid">
+          <div class="card stat-card"><div class="stat-top"><span>Total issues</span><span class="stat-icon">▤</span></div><div class="stat-value" id="statTotal">0</div><div class="stat-foot">All recorded customer cases</div></div>
+          <div class="card stat-card"><div class="stat-top"><span>Open issues</span><span class="stat-icon">◷</span></div><div class="stat-value" id="statOpen">0</div><div class="stat-foot">Waiting for follow-up</div></div>
+          <div class="card stat-card"><div class="stat-top"><span>Resolved</span><span class="stat-icon">✓</span></div><div class="stat-value" id="statResolved">0</div><div class="stat-foot">Marked as resolved</div></div>
+          <div class="card stat-card"><div class="stat-top"><span>Resolution rate</span><span class="stat-icon">↗</span></div><div class="stat-value" id="statRate">0%</div><div class="stat-foot">Resolved cases / all cases</div></div>
+        </div>
+        <div class="grid two-col">
+          <div class="card"><div class="card-header"><h2>Recent customer issues</h2><button class="btn ghost sm" onclick="navigate('issues')">View all →</button></div><div id="dashboardRecent"></div></div>
+          <div class="card"><div class="card-header"><h2>Quick actions</h2><span class="pill">SHORTCUTS</span></div>
+            <div class="feature-row"><div class="feature-icon">✧</div><div><h3>Ask the assistant</h3><p class="muted small">Get troubleshooting steps for delivery, refunds, accounts, and more.</p><button class="btn sm" onclick="navigate('chat')">Open AI chat</button></div></div>
+            <div class="feature-row"><div class="feature-icon">⌕</div><div><h3>Find an answer</h3><p class="muted small">Search help articles and policy references.</p><button class="btn secondary sm" onclick="navigate('knowledge')">Search articles</button></div></div>
+            <div class="feature-row"><div class="feature-icon">▥</div><div><h3>Review performance</h3><p class="muted small">See case categories, priorities, and resolution metrics.</p><button class="btn secondary sm" onclick="navigate('analytics')">Open analytics</button></div></div>
+          </div>
+        </div>
+        <div class="footer">ResolveAI prototype · Sample policies are illustrative and must be replaced with approved company content.</div>
+      </section>
+
+      <!-- Issue management -->
+      <section class="page" id="page-issues">
+        <div class="page-heading"><div><div class="eyebrow">CASE WORKFLOW</div><h1>Issue Management</h1><p class="muted">Register, search, prioritize, assign, and resolve customer cases.</p></div><button class="btn" onclick="openIssueModal()">＋ New issue</button></div>
+        <div class="card">
+          <div class="toolbar"><input class="grow" id="issueSearch" placeholder="Search issue, customer, ID, or description…"><select id="issueStatusFilter" style="max-width:155px"><option value="All">All statuses</option><option>Open</option><option>In Progress</option><option>Resolved</option></select><select id="issuePriorityFilter" style="max-width:155px"><option value="All">All priorities</option><option>Low</option><option>Medium</option><option>High</option><option>Urgent</option></select><button class="btn ghost" id="exportIssues">Export CSV</button></div>
+          <div class="issue-list" id="issueList"></div>
+        </div>
+      </section>
+
+      <!-- Chat -->
+      <section class="page" id="page-chat">
+        <div class="page-heading"><div><div class="eyebrow">CONVERSATIONAL SUPPORT</div><h1>AI Support Assistant</h1><p class="muted">Ask anything about this project, its modules, code, AI/LLM/RAG architecture, setup, troubleshooting, or customer-service concepts.</p></div><button class="btn ghost" id="clearChat">Clear conversation</button></div>
+        <div class="chat-layout">
+          <div class="card chat-card">
+            <div class="chat-head"><div class="chat-brand"><div class="bot-avatar">✧</div><div><h3>ResolveAI Assistant</h3><div class="tiny muted"><span class="status-dot" id="aiStatusDot"></span><span id="aiStatusText">Checking secure AI connection…</span></div></div></div><span class="pill blue" id="aiModePill">AI CONNECTING…</span></div>
+            <div class="chat-messages" id="chatMessages" aria-live="polite">
+              <div class="message"><div class="message-avatar">✧</div><div><div class="message-body">Hello! I'm ResolveAI. I can help you explore customer-support topics, explain concepts, troubleshoot common issues, search the local knowledge base, and draft a support response.
+
+Try asking:
+• How do I handle a delayed order?
+• Explain RAG in simple words.
+• What should I do about a failed payment?
+• How can I improve customer service?</div><div class="message-time">ResolveAI · Welcome message</div></div></div>
+            </div>
+            <div class="chat-compose">
+              <form id="chatForm"><div class="compose-row"><textarea id="chatInput" rows="1" maxlength="4000" placeholder="Ask a question or describe a customer issue…" required></textarea><button class="btn" id="sendChat" type="submit">Send ↑</button></div><div class="compose-note">Enter to send · Shift+Enter for a new line · Do not enter passwords, OTPs, or sensitive personal information.</div></form>
+              <div class="suggestions"><button class="suggestion" data-prompt="Explain RAG in simple words">Explain RAG</button><button class="suggestion" data-prompt="My order is delayed. What should I do?">Delayed order</button><button class="suggestion" data-prompt="Write a polite response to an angry customer">Customer reply</button><button class="suggestion" data-prompt="How can I improve customer service?">Improve service</button></div>
+            </div>
+          </div>
+          <aside class="chat-side">
+            <div class="card"><div class="card-header"><h2>Suggested prompts</h2></div>
+              <button class="quick-prompt" data-prompt="Explain the difference between AI, machine learning, and generative AI.">Explain AI concepts</button>
+              <button class="quick-prompt" data-prompt="How does retrieval-augmented generation work in a customer support agent?">How RAG works</button>
+              <button class="quick-prompt" data-prompt="Create a troubleshooting checklist for a customer who cannot log in.">Troubleshooting checklist</button>
+              <button class="quick-prompt" data-prompt="Draft a professional apology for a delayed delivery.">Draft an apology</button>
+              <button class="quick-prompt" data-prompt="What should be escalated to a human support agent?">Escalation guidance</button>
+            </div>
+            <div class="card"><div class="card-header"><h2>Assistant capabilities</h2></div>
+              <div class="kpi-row"><span>Local knowledge search</span><span class="pill green">Enabled</span></div>
+              <div class="kpi-row"><span>Issue-aware answers</span><span class="pill green">Enabled</span></div>
+              <div class="kpi-row"><span>Conversation history</span><span class="pill blue">Session</span></div>
+              <div class="kpi-row"><span>Live internet / LLM</span><span class="pill yellow" id="llmStatusValue">Checking…</span></div>
+              <hr class="divider"><p class="tiny muted" id="aiCapabilityNote">When the backend is configured, the assistant uses an LLM with retrieved project knowledge. If unavailable, it falls back to the local demo assistant.</p>
+            </div>
+            <div class="card"><h2>Need a human?</h2><p class="small muted">The assistant can suggest escalation, but cannot contact your support team automatically.</p><button class="btn secondary block" onclick="navigate('issues')">Create a case</button></div>
+          </aside>
+        </div>
+      </section>
+
+      <!-- Knowledge -->
+      <section class="page" id="page-knowledge">
+        <div class="page-heading"><div><div class="eyebrow">SELF-SERVICE RESOURCES</div><h1>Knowledge Base</h1><p class="muted">Search troubleshooting guides, customer service concepts, and internal demo articles.</p></div><button class="btn" onclick="openArticleModal()">＋ Add article</button></div>
+        <div class="card"><div class="toolbar"><input class="grow" id="knowledgeSearch" placeholder="Search articles by title, topic, or keyword…"><select id="knowledgeCategory" style="max-width:190px"><option value="All">All categories</option><option>Delivery</option><option>Refunds</option><option>Payments</option><option>Accounts</option><option>Technical</option><option>AI & Technology</option><option>Service Quality</option><option>General</option></select></div><div id="knowledgeResults"></div></div>
+      </section>
+
+      <!-- Policies -->
+      <section class="page" id="page-policies">
+        <div class="page-heading"><div><div class="eyebrow">POLICY REFERENCE</div><h1>Service Policies</h1><p class="muted">Reference material for suggested answers. Replace examples with your organization's approved policies.</p></div><button class="btn" onclick="openPolicyModal()">＋ Add policy</button></div>
+        <div class="notice" style="margin-bottom:15px">Important: the policies below are sample guidance for this prototype, not legally binding company rules. Verify eligibility, timelines, and approvals against official documentation.</div>
+        <div class="toolbar"><input class="grow" id="policySearch" placeholder="Search policy name or content…"><select id="policyCategory" style="max-width:190px"><option value="All">All categories</option><option>Delivery</option><option>Refunds</option><option>Payments</option><option>Privacy</option><option>Escalation</option><option>Accounts</option></select></div>
+        <div class="policy-grid" id="policyResults"></div>
+      </section>
+
+      <!-- Analytics -->
+      <section class="page" id="page-analytics">
+        <div class="page-heading"><div><div class="eyebrow">OPERATIONAL INSIGHTS</div><h1>Analytics & Reports</h1><p class="muted">A live summary of the cases saved in this browser.</p></div><button class="btn ghost" id="refreshAnalytics">↻ Refresh</button></div>
+        <div class="grid stats-grid">
+          <div class="card stat-card"><div class="stat-top">Resolution rate <span class="stat-icon">↗</span></div><div class="stat-value" id="analyticsRate">0%</div><div class="progress"><span id="rateBar" style="width:0%"></span></div><div class="stat-foot">Resolved cases</div></div>
+          <div class="card stat-card"><div class="stat-top">High priority <span class="stat-icon">!</span></div><div class="stat-value" id="analyticsHigh">0</div><div class="stat-foot">High or urgent cases</div></div>
+          <div class="card stat-card"><div class="stat-top">In progress <span class="stat-icon">◷</span></div><div class="stat-value" id="analyticsProgress">0</div><div class="stat-foot">Active investigations</div></div>
+          <div class="card stat-card"><div class="stat-top">Categories <span class="stat-icon">▦</span></div><div class="stat-value" id="analyticsCategories">0</div><div class="stat-foot">Categories represented</div></div>
+        </div>
+        <div class="grid two-col">
+          <div class="card"><div class="card-header"><h2>Issues by category</h2><span class="pill">LIVE DATA</span></div><div id="categoryChart"></div></div>
+          <div class="card"><div class="card-header"><h2>Issue status</h2></div><div id="statusChart"></div><div class="kpi-row"><span>Open</span><strong id="analyticsOpen">0</strong></div><div class="kpi-row"><span>Resolved</span><strong id="analyticsResolved">0</strong></div><div class="kpi-row"><span>Total</span><strong id="analyticsTotal">0</strong></div></div>
+        </div>
+        <div class="card" style="margin-top:16px"><div class="card-header"><h2>Priority breakdown</h2></div><div id="priorityBreakdown"></div></div>
+      </section>
+
+      <!-- Feedback -->
+      <section class="page" id="page-feedback">
+        <div class="page-heading"><div><div class="eyebrow">CUSTOMER VOICE</div><h1>Feedback Center</h1><p class="muted">Capture demo feedback and review satisfaction trends.</p></div></div>
+        <div class="grid two-col">
+          <div class="card"><h2>Submit feedback</h2><p class="muted small">Use this form to record feedback about the support experience.</p>
+            <form id="feedbackForm">
+              <div class="field"><label for="feedbackName">Name (optional)</label><input id="feedbackName" placeholder="Your name"></div>
+              <div class="field"><label for="feedbackRating">How was your experience?</label><select id="feedbackRating"><option value="5">★★★★★ — Excellent</option><option value="4">★★★★☆ — Good</option><option value="3">★★★☆☆ — Average</option><option value="2">★★☆☆☆ — Poor</option><option value="1">★☆☆☆☆ — Very poor</option></select></div>
+              <div class="field"><label for="feedbackTopic">Feedback topic</label><select id="feedbackTopic"><option>AI Assistant</option><option>Issue Management</option><option>Knowledge Base</option><option>Website Usability</option><option>Other</option></select></div>
+              <div class="field"><label for="feedbackText">Comments</label><textarea id="feedbackText" required placeholder="Tell us what worked well or what could improve…"></textarea></div>
+              <button class="btn" type="submit">Submit feedback</button>
+            </form>
+          </div>
+          <div class="card"><div class="card-header"><h2>Feedback summary</h2><span class="pill">LOCAL</span></div><div class="stat-value" id="feedbackAverage">—</div><p class="muted small">Average rating out of 5</p><div id="feedbackSummary"></div><hr class="divider"><h3>Recent feedback</h3><div id="feedbackList"></div></div>
+        </div>
+      </section>
+
+      <!-- Settings -->
+      <section class="page" id="page-settings">
+        <div class="page-heading"><div><div class="eyebrow">PREFERENCES & STORAGE</div><h1>Settings & Data</h1><p class="muted">Manage your local demo data and configure the prototype experience.</p></div></div>
+        <div class="grid two-col">
+          <div class="card"><h2>Workspace preferences</h2><p class="muted small">These preferences apply in this browser only.</p>
+            <div class="field"><label for="displayName">Workspace display name</label><input id="displayName" value="Support Workspace"></div>
+            <div class="field"><label for="assistantName">Assistant name</label><input id="assistantName" value="ResolveAI"></div>
+            <div class="field"><label for="replyStyle">Default reply style</label><select id="replyStyle"><option value="helpful">Helpful and detailed</option><option value="concise">Short and concise</option><option value="formal">Formal and professional</option></select></div>
+            <div class="field"><label><input type="checkbox" id="showSources" checked> Show knowledge references in answers</label></div>
+            <button class="btn" id="saveSettings">Save preferences</button>
+          </div>
+          <div class="card"><h2>Data management</h2><p class="muted small">Export or import your prototype data. Data stays in this browser unless exported.</p>
+            <div class="feature-row"><div class="feature-icon">⇩</div><div><h3>Export backup</h3><p class="small muted">Download issues, custom articles, policies, feedback, and preferences as JSON.</p><button class="btn secondary sm" id="exportBackup">Download backup</button></div></div>
+            <div class="feature-row"><div class="feature-icon">⇧</div><div><h3>Import backup</h3><p class="small muted">Restore a previously exported ResolveAI JSON backup.</p><input type="file" id="importFile" accept=".json,application/json"><button class="btn secondary sm" id="importBackup">Import selected file</button></div></div>
+            <div class="feature-row"><div class="feature-icon">⌫</div><div><h3>Reset demo data</h3><p class="small muted">Permanently clear local issues, custom content, feedback, and chat history.</p><button class="btn danger sm" id="resetData">Reset all demo data</button></div></div>
+            <hr class="divider"><div class="notice">Do not store sensitive customer information in this demo. LocalStorage is not a secure production database.</div>
+          </div>
+        </div>
+        <div class="card" style="margin-top:16px"><h2>AI connection setup</h2><p class="muted">To make the chatbot answer a much wider range of questions using a real language model, connect it through a backend service.</p>
+          <div class="feature-row"><div class="feature-icon">1</div><div><h3>Create a backend endpoint</h3><p class="small muted">Example: POST /api/chat with a user message and conversation context.</p></div></div>
+          <div class="feature-row"><div class="feature-icon">2</div><div><h3>Connect a language model</h3><p class="small muted">The backend can call your chosen model provider. Keep API keys on the server; never embed secret keys in this HTML file.</p></div></div>
+          <div class="feature-row"><div class="feature-icon">3</div><div><h3>Add real RAG retrieval</h3><p class="small muted">Index approved service documents, retrieve relevant passages, and provide source references to the model.</p></div></div>
+          <div class="feature-row"><div class="feature-icon">4</div><div><h3>Secure production data</h3><p class="small muted">Add authentication, access control, input validation, rate limits, logging, and privacy safeguards.</p></div></div>
+        </div>
+      </section>
+
+      <!-- About -->
+      <section class="page" id="page-about">
+        <div class="page-heading"><div><div class="eyebrow">PROJECT INFORMATION</div><h1>About ResolveAI</h1><p class="muted">AI-Based Customer Service Resolution Agent — interactive academic prototype.</p></div></div>
+        <div class="hero"><span class="pill blue">PROJECT OVERVIEW</span><h2>One workspace for customer support resolution.</h2><p>ResolveAI demonstrates how a support agent can combine case management, knowledge search, policy references, analytics, and a conversational assistant.</p></div>
+        <div class="grid three-col">
+          <div class="card"><div class="stat-icon">✧</div><h3 style="margin-top:12px">AI-assisted responses</h3><p class="muted small">A local rules-and-knowledge assistant demonstrates natural-language support flows.</p></div>
+          <div class="card"><div class="stat-icon">⌕</div><h3 style="margin-top:12px">Knowledge retrieval</h3><p class="muted small">Search help articles and policy examples to ground answers in reference content.</p></div>
+          <div class="card"><div class="stat-icon">▤</div><h3 style="margin-top:12px">Case lifecycle</h3><p class="muted small">Create, prioritize, assign, update, resolve, and export customer issues.</p></div>
+        </div>
+        <div class="card" style="margin-top:16px"><h2>Technology stack</h2><p><span class="pill blue">HTML5</span> <span class="pill blue">CSS3</span> <span class="pill blue">JavaScript ES6</span> <span class="pill blue">LocalStorage</span> <span class="pill">Responsive UI</span></p><hr class="divider"><h2>Prototype limitations</h2><p class="muted">This is a client-side demo. It has no authenticated users, shared database, live company-system integrations, live web search, or real LLM connection by default. Its example service policies must be verified before any real-world use.</p></div>
+      </section>
+    </div>
+  </main>
+</div>
+
+<!-- Issue modal -->
+<div class="modal-backdrop" id="issueModal"><div class="modal">
+  <div class="modal-header"><div><div class="eyebrow">CASE REGISTRATION</div><h2 id="issueModalTitle">Create a customer issue</h2></div><button class="icon-btn" data-close="issueModal">×</button></div>
+  <form id="issueForm">
+    <input type="hidden" id="editIssueId">
+    <div class="form-grid">
+      <div class="field"><label for="issueCustomer">Customer name</label><input id="issueCustomer" required maxlength="100" placeholder="Customer name"></div>
+      <div class="field"><label for="issueEmail">Email (optional)</label><input id="issueEmail" type="email" maxlength="160" placeholder="customer@example.com"></div>
+      <div class="field full"><label for="issueTitle">Issue title</label><input id="issueTitle" required maxlength="140" placeholder="Summarize the problem"></div>
+      <div class="field"><label for="issueCategory">Category</label><select id="issueCategory"><option>Delivery</option><option>Refunds</option><option>Payments</option><option>Accounts</option><option>Technical</option><option>AI & Technology</option><option>Service Quality</option><option>General</option></select></div>
+      <div class="field"><label for="issuePriority">Priority</label><select id="issuePriority"><option>Low</option><option selected>Medium</option><option>High</option><option>Urgent</option></select></div>
+      <div class="field"><label for="issueStatus">Status</label><select id="issueStatus"><option>Open</option><option>In Progress</option><option>Resolved</option></select></div>
+      <div class="field"><label for="issueAssignee">Assigned to</label><input id="issueAssignee" maxlength="100" placeholder="Unassigned"></div>
+      <div class="field full"><label for="issueDescription">Description</label><textarea id="issueDescription" required maxlength="3000" placeholder="Describe what happened, what has been tried, and what outcome is needed."></textarea></div>
+      <div class="field full"><label for="issueResolution">Resolution notes (optional)</label><textarea id="issueResolution" maxlength="2000" placeholder="Record steps taken or the final resolution."></textarea></div>
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:8px"><button type="button" class="btn ghost" data-close="issueModal">Cancel</button><button class="btn" type="submit">Save issue</button></div>
+  </form>
+</div></div>
+
+<!-- Article modal -->
+<div class="modal-backdrop" id="articleModal"><div class="modal">
+  <div class="modal-header"><h2>Add knowledge article</h2><button class="icon-btn" data-close="articleModal">×</button></div>
+  <form id="articleForm"><div class="field"><label>Article title</label><input id="articleTitle" required maxlength="150"></div><div class="field"><label>Category</label><select id="articleCategory"><option>General</option><option>Delivery</option><option>Refunds</option><option>Payments</option><option>Accounts</option><option>Technical</option><option>AI & Technology</option><option>Service Quality</option></select></div><div class="field"><label>Keywords (comma-separated)</label><input id="articleKeywords" placeholder="tracking, delivery, order"></div><div class="field"><label>Article content</label><textarea id="articleBody" required maxlength="5000"></textarea></div><div style="display:flex;justify-content:flex-end;gap:8px"><button type="button" class="btn ghost" data-close="articleModal">Cancel</button><button class="btn">Save article</button></div></form>
+</div></div>
+
+<!-- Policy modal -->
+<div class="modal-backdrop" id="policyModal"><div class="modal">
+  <div class="modal-header"><h2>Add service policy</h2><button class="icon-btn" data-close="policyModal">×</button></div>
+  <form id="policyForm"><div class="field"><label>Policy title</label><input id="policyTitle" required maxlength="150"></div><div class="field"><label>Category</label><select id="policyCategoryNew"><option>Delivery</option><option>Refunds</option><option>Payments</option><option>Privacy</option><option>Escalation</option><option>Accounts</option></select></div><div class="field"><label>Keywords</label><input id="policyKeywords" placeholder="refund, eligibility, return"></div><div class="field"><label>Policy content</label><textarea id="policyBody" required maxlength="5000"></textarea></div><div style="display:flex;justify-content:flex-end;gap:8px"><button type="button" class="btn ghost" data-close="policyModal">Cancel</button><button class="btn">Save policy</button></div></form>
+</div></div>
+
+<div class="modal-backdrop" id="helpModal"><div class="modal">
+  <div class="modal-header"><h2>ResolveAI quick help</h2><button class="icon-btn" data-close="helpModal">×</button></div>
+  <div class="feature-row"><div class="feature-icon">1</div><div><h3>Create an issue</h3><p class="small muted">Use Issue Management to create a case, choose priority, and track its status.</p></div></div>
+  <div class="feature-row"><div class="feature-icon">2</div><div><h3>Ask the assistant</h3><p class="small muted">Ask a question in the chat. The local assistant uses built-in explanations and searchable articles.</p></div></div>
+  <div class="feature-row"><div class="feature-icon">3</div><div><h3>Search references</h3><p class="small muted">Use Knowledge Base and Service Policies to look up stored content.</p></div></div>
+  <div class="feature-row"><div class="feature-icon">4</div><div><h3>Keep your data</h3><p class="small muted">Data is stored in this browser. Export a backup before clearing browser data or switching devices.</p></div></div>
+  <div class="notice" style="margin-top:15px">The demo assistant is not connected to a live language model. Never use it as the sole source for legal, financial, medical, or safety-critical decisions.</div>
+</div></div>
+<div class="toast-container" id="toastContainer" aria-live="polite"></div>
+
+<script>
+"use strict";
+/* =========================================================
+   ResolveAI application logic
+   ========================================================= */
+const STORAGE = {
+  issues: "resolveai_v2_issues",
+  articles: "resolveai_v2_articles",
+  policies: "resolveai_v2_policies",
+  feedback: "resolveai_v2_feedback",
+  settings: "resolveai_v2_settings",
+  chat: "resolveai_v2_chat"
+};
+
+const DEFAULT_ARTICLES = [
+ {id:"KB-001",title:"Order Delivery Delays",category:"Delivery",keywords:"delivery order tracking delayed shipment parcel late shipping",body:"Start by checking the official order-tracking page and the expected delivery date. Confirm the delivery address and look for carrier updates. If the order is overdue, collect the order reference and contact the authorized delivery team. Avoid promising a new delivery date until the carrier confirms it.",updatedAt:"Built-in"},
+ {id:"KB-002",title:"Refund Request Guide",category:"Refunds",keywords:"refund return money back cancel cancellation eligibility",body:"Check the order details, purchase date, item condition, and the official return/refund policy. Submit the request through an authorized support channel. Explain the next steps clearly and provide a timeline only after verifying the actual policy and payment provider rules. This demo cannot issue a refund.",updatedAt:"Built-in"},
+ {id:"KB-003",title:"Failed or Pending Payment",category:"Payments",keywords:"payment failed pending charged debit transaction bank money",body:"Check the payment status and transaction history. If money appears to have been deducted, save the transaction reference and time. Do not ask the customer to share a PIN, password, or OTP. Escalate to the authorized payments team if the order status and bank status do not match.",updatedAt:"Built-in"},
+ {id:"KB-004",title:"Account Login Troubleshooting",category:"Accounts",keywords:"login log in password account locked otp sign in access",body:"Verify the registered email or username, check the connection, and use the official password-reset process. Check whether account verification is required. Never request the customer's password or OTP. Escalate persistent lockouts through the approved identity-verification process.",updatedAt:"Built-in"},
+ {id:"KB-005",title:"Basic Technical Troubleshooting",category:"Technical",keywords:"technical error app website bug crash slow not working browser",body:"Record the error message and when it occurred. Check the network connection, refresh or restart the application, and install available updates. If the issue persists, capture the device/browser version and steps to reproduce, then route the case to the technical team.",updatedAt:"Built-in"},
+ {id:"KB-006",title:"Handling an Upset Customer",category:"Service Quality",keywords:"angry upset complaint empathy apology customer service tone",body:"Listen without interrupting. Acknowledge the customer's experience, apologize for the inconvenience without making unsupported promises, summarize the issue, and explain the next action. Give a realistic update time and escalate when the issue is sensitive, urgent, or outside your authority.",updatedAt:"Built-in"},
+ {id:"KB-007",title:"Escalation Checklist",category:"General",keywords:"escalate escalation human agent urgent manager sensitive complaint",body:"Escalate when the issue is unresolved after standard steps, involves account security or suspected fraud, requires a policy exception, has significant customer impact, or the assistant is uncertain. Include the case ID, a concise summary, actions already tried, and the customer's desired outcome.",updatedAt:"Built-in"},
+ {id:"KB-008",title:"What Is AI?",category:"AI & Technology",keywords:"artificial intelligence ai definition example",body:"Artificial intelligence (AI) is a broad field focused on building computer systems that perform tasks commonly associated with human intelligence, such as recognizing patterns, understanding language, making predictions, and assisting with decisions. AI systems vary widely and can make mistakes.",updatedAt:"Built-in"},
+ {id:"KB-009",title:"Machine Learning Explained",category:"AI & Technology",keywords:"machine learning ml model training data prediction",body:"Machine learning is a branch of AI in which a system learns patterns from examples or data to make predictions or decisions. Common types include supervised learning, unsupervised learning, and reinforcement learning. Performance depends on data quality, evaluation, and the use case.",updatedAt:"Built-in"},
+ {id:"KB-010",title:"Generative AI and LLMs",category:"AI & Technology",keywords:"generative ai llm large language model chatbot tokens",body:"Generative AI creates new content such as text, images, or code. A large language model (LLM) is trained to process and generate language. It can explain concepts and draft responses, but may produce incorrect or unsupported claims, so important information should be verified.",updatedAt:"Built-in"},
+ {id:"KB-011",title:"RAG for Customer Support",category:"AI & Technology",keywords:"rag retrieval augmented generation vector database embeddings sources",body:"Retrieval-Augmented Generation (RAG) searches a trusted knowledge collection for relevant passages and gives those passages to a language model as context. The model then drafts an answer grounded in the retrieved content. A production RAG system should show sources, respect access permissions, and say when evidence is missing.",updatedAt:"Built-in"},
+ {id:"KB-012",title:"Customer Service Best Practices",category:"Service Quality",keywords:"customer service quality empathy clarity response satisfaction",body:"Use plain language, acknowledge the customer's issue, ask only necessary clarifying questions, explain the next action, and avoid unsupported guarantees. Keep a record of the resolution. Follow approved policies and provide a clear path to a human agent.",updatedAt:"Built-in"},
+ {id:"KB-013",title:"Data Privacy and Safe Support",category:"General",keywords:"privacy data protection password otp pii personal information security",body:"Collect only information needed to resolve the case. Do not request passwords, OTPs, full payment credentials, or unnecessary sensitive data. Use approved channels, restrict access to customer records, and follow the organization's privacy and retention rules.",updatedAt:"Built-in"},
+ {id:"KB-014",title:"Writing a Professional Support Reply",category:"Service Quality",keywords:"write draft reply email apology professional customer response",body:"A useful support reply greets the customer, acknowledges the problem, states what is known, gives the next action, sets an update expectation if verified, and closes politely. Avoid blaming the customer or promising a result that has not been confirmed.",updatedAt:"Built-in"},
+ {id:"KB-015",title:"Support Metrics Explained",category:"AI & Technology",keywords:"analytics kpi first response time resolution rate csat sla",body:"Common support metrics include first response time, time to resolution, customer satisfaction (CSAT), reopen rate, escalation rate, and service-level agreement (SLA) attainment. Define each metric consistently and interpret it alongside complexity and customer outcomes.",updatedAt:"Built-in"}
+];
+
+const DEFAULT_POLICIES = [
+ {id:"POL-001",title:"Delivery and Tracking",category:"Delivery",keywords:"delivery shipping tracking delay",body:"Example guidance: ask the customer to check the official tracking status and delivery estimate. For overdue shipments, create a case for the authorized delivery team. Do not guarantee a delivery date unless it is confirmed by the carrier."},
+ {id:"POL-002",title:"Refund and Return Eligibility",category:"Refunds",keywords:"refund return cancellation money eligibility",body:"Example guidance: refund eligibility depends on the real seller policy, product type, purchase date, item condition, and local law. Verify the approved policy before confirming eligibility. The prototype cannot approve or process refunds."},
+ {id:"POL-003",title:"Payment Disputes",category:"Payments",keywords:"payment bank charge transaction debit",body:"Example guidance: record a transaction reference and check payment status using authorized tools. Never request PINs, passwords, or OTPs. Escalate mismatched payment/order statuses to the payments team."},
+ {id:"POL-004",title:"Customer Privacy",category:"Privacy",keywords:"privacy personal data password security",body:"Example guidance: collect the minimum information needed, avoid storing secrets, and use approved secure systems. Do not ask customers to provide passwords, OTPs, or full card credentials in chat."},
+ {id:"POL-005",title:"Human Escalation",category:"Escalation",keywords:"human agent urgent complaint escalation",body:"Example guidance: escalate unresolved, urgent, sensitive, security-related, or policy-exception cases. Provide the case reference, concise facts, actions taken, and desired outcome. This demo cannot contact a real human agent."},
+ {id:"POL-006",title:"Account Recovery",category:"Accounts",keywords:"account login password reset otp",body:"Example guidance: use the official identity verification and account recovery process. Never bypass identity checks or request a customer's password or one-time code."}
+];
+
+function safeParse(value, fallback) {
+  try { const result = JSON.parse(value); return result ?? fallback; }
+  catch { return fallback; }
+}
+function loadStored(key, fallback) {
+  try { return safeParse(localStorage.getItem(key), fallback); }
+  catch { return fallback; }
+}
+function saveStored(key, value) {
+  try { localStorage.setItem(key, JSON.stringify(value)); return true; }
+  catch { toast("Could not save data. Browser storage may be full or disabled.", "error"); return false; }
+}
+function uid(prefix) {
+  return prefix + "-" + Date.now().toString(36).toUpperCase() + "-" + Math.random().toString(36).slice(2,6).toUpperCase();
+}
+function esc(value) {
+  return String(value ?? "").replace(/[&<>"']/g, c => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  })[c]);
+}
+function normalize(value) {
+  return String(value ?? "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim();
+}
+function dateLabel(value) {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? "Date unavailable" : date.toLocaleString([], {dateStyle:"medium",timeStyle:"short"});
+}
+function toast(message, type="success") {
+  const box = document.getElementById("toastContainer");
+  const node = document.createElement("div");
+  node.className = "toast " + (type === "error" ? "error" : "");
+  node.textContent = message;
+  box.appendChild(node);
+  setTimeout(() => node.remove(), 3600);
+}
+
+let issues = loadStored(STORAGE.issues, []);
+let customArticles = loadStored(STORAGE.articles, []);
+let customPolicies = loadStored(STORAGE.policies, []);
+let feedback = loadStored(STORAGE.feedback, []);
+let settings = loadStored(STORAGE.settings, {displayName:"Support Workspace",assistantName:"ResolveAI",replyStyle:"helpful",showSources:true});
+let chatHistory = loadStored(STORAGE.chat, []);
+if (!Array.isArray(issues)) issues = [];
+if (!Array.isArray(customArticles)) customArticles = [];
+if (!Array.isArray(customPolicies)) customPolicies = [];
+if (!Array.isArray(feedback)) feedback = [];
+if (!Array.isArray(chatHistory)) chatHistory = [];
+
+function allArticles() { return [...DEFAULT_ARTICLES, ...customArticles]; }
+function allPolicies() { return [...DEFAULT_POLICIES, ...customPolicies]; }
+
+const PAGE_TITLES = {
+ dashboard:"Dashboard Overview",issues:"Issue Management",chat:"AI Support Chat",
+ knowledge:"Knowledge Base",policies:"Service Policies",analytics:"Analytics & Reports",
+ feedback:"Feedback Center",settings:"Settings & Data",about:"About ResolveAI"
+};
+function navigate(name) {
+  document.querySelectorAll(".page").forEach(page => page.classList.remove("active"));
+  const page = document.getElementById("page-" + name);
+  if (!page) return;
+  page.classList.add("active");
+  document.querySelectorAll(".nav-btn").forEach(button => button.classList.toggle("active",button.dataset.page===name));
+  document.getElementById("topTitle").textContent = PAGE_TITLES[name] || "ResolveAI";
+  document.getElementById("sidebar").classList.remove("open");
+  if (name==="dashboard") renderDashboard();
+  if (name==="issues") renderIssues();
+  if (name==="knowledge") renderKnowledge();
+  if (name==="policies") renderPolicies();
+  if (name==="analytics") renderAnalytics();
+  if (name==="feedback") renderFeedback();
+  if (name==="settings") renderSettings();
+}
+document.querySelectorAll(".nav-btn").forEach(button => button.addEventListener("click",()=>navigate(button.dataset.page)));
+document.getElementById("mobileMenu").addEventListener("click",()=>document.getElementById("sidebar").classList.toggle("open"));
+document.getElementById("helpButton").addEventListener("click",()=>openModal("helpModal"));
+document.getElementById("newIssueTop").addEventListener("click",openIssueModal);
+document.querySelectorAll("[data-close]").forEach(button => button.addEventListener("click",()=>closeModal(button.dataset.close)));
+document.querySelectorAll(".modal-backdrop").forEach(backdrop => backdrop.addEventListener("click",event=>{if(event.target===backdrop)backdrop.classList.remove("open");}));
+function openModal(id){document.getElementById(id).classList.add("open");}
+function closeModal(id){document.getElementById(id).classList.remove("open");}
+
+/* Issue management */
+function openIssueModal(issueId=null) {
+  const form=document.getElementById("issueForm");
+  form.reset();
+  document.getElementById("editIssueId").value="";
+  document.getElementById("issueModalTitle").textContent="Create a customer issue";
+  if(issueId){
+    const issue=issues.find(item=>item.id===issueId);
+    if(!issue)return;
+    document.getElementById("editIssueId").value=issue.id;
+    document.getElementById("issueModalTitle").textContent="Edit "+issue.id;
+    document.getElementById("issueCustomer").value=issue.customer||"";
+    document.getElementById("issueEmail").value=issue.email||"";
+    document.getElementById("issueTitle").value=issue.title||"";
+    document.getElementById("issueCategory").value=issue.category||"General";
+    document.getElementById("issuePriority").value=issue.priority||"Medium";
+    document.getElementById("issueStatus").value=issue.status||"Open";
+    document.getElementById("issueAssignee").value=issue.assignee||"";
+    document.getElementById("issueDescription").value=issue.description||"";
+    document.getElementById("issueResolution").value=issue.resolution||"";
+  }
+  openModal("issueModal");
+}
+document.getElementById("issueForm").addEventListener("submit",event=>{
+  event.preventDefault();
+  const editId=document.getElementById("editIssueId").value;
+  const existing=issues.find(item=>item.id===editId);
+  const issue={
+    id:existing?existing.id:uid("CASE"),
+    customer:document.getElementById("issueCustomer").value.trim(),
+    email:document.getElementById("issueEmail").value.trim(),
+    title:document.getElementById("issueTitle").value.trim(),
+    category:document.getElementById("issueCategory").value,
+    priority:document.getElementById("issuePriority").value,
+    status:document.getElementById("issueStatus").value,
+    assignee:document.getElementById("issueAssignee").value.trim(),
+    description:document.getElementById("issueDescription").value.trim(),
+    resolution:document.getElementById("issueResolution").value.trim(),
+    createdAt:existing?existing.createdAt:new Date().toISOString(),
+    updatedAt:new Date().toISOString()
+  };
+  if(!issue.customer||!issue.title||!issue.description){toast("Please fill in all required fields.","error");return;}
+  if(existing)issues=issues.map(item=>item.id===editId?issue:item);
+  else issues.unshift(issue);
+  saveStored(STORAGE.issues,issues);
+  closeModal("issueModal");
+  renderAll();
+  toast(existing?"Issue updated successfully.":"New issue created successfully.");
+});
+function statusPill(status){
+  const cls=status==="Resolved"?"green":status==="In Progress"?"blue":"yellow";
+  return `<span class="pill ${cls}">${esc(status)}</span>`;
+}
+function priorityPill(priority){
+  const cls=priority==="Urgent"||priority==="High"?"red":priority==="Medium"?"yellow":"";
+  return `<span class="pill ${cls}">${esc(priority)} priority</span>`;
+}
+function issueCard(issue){
+  return `<article class="issue-card">
+    <div class="issue-title-row"><div class="issue-title">${esc(issue.title)}</div>${statusPill(issue.status)}</div>
+    <div class="issue-meta">${esc(issue.id)} · ${esc(issue.customer)} · ${esc(issue.category)} · ${dateLabel(issue.createdAt)}</div>
+    <div>${priorityPill(issue.priority)} ${issue.assignee?`<span class="pill">Assigned: ${esc(issue.assignee)}</span>`:`<span class="pill">Unassigned</span>`}</div>
+    <p class="issue-desc">${esc(issue.description)}</p>
+    ${issue.resolution?`<p class="small"><strong>Resolution:</strong> ${esc(issue.resolution)}</p>`:""}
+    <div class="issue-actions">
+      <button class="btn ghost sm" onclick="openIssueModal('${esc(issue.id)}')">Edit</button>
+      <button class="btn secondary sm" onclick="cycleIssueStatus('${esc(issue.id)}')">${issue.status==="Open"?"Start work":issue.status==="In Progress"?"Mark resolved":"Reopen"}</button>
+      <button class="btn ghost sm" onclick="askAboutIssue('${esc(issue.id)}')">Ask AI</button>
+      <button class="btn danger sm" onclick="deleteIssue('${esc(issue.id)}')">Delete</button>
+    </div>
+  </article>`;
+}
+function renderIssues(){
+  const search=normalize(document.getElementById("issueSearch")?.value||"");
+  const status=document.getElementById("issueStatusFilter")?.value||"All";
+  const priority=document.getElementById("issuePriorityFilter")?.value||"All";
+  const matches=issues.filter(issue=>{
+    const haystack=normalize([issue.id,issue.title,issue.customer,issue.email,issue.category,issue.description,issue.assignee].join(" "));
+    return (!search||haystack.includes(search))&&(status==="All"||issue.status===status)&&(priority==="All"||issue.priority===priority);
+  });
+  document.getElementById("issueList").innerHTML=matches.length?matches.map(issueCard).join(""):`<div class="empty"><div class="empty-icon">▤</div><strong>No matching issues</strong><p class="small">Change the filters or create a new issue.</p></div>`;
+  document.getElementById("navOpenCount").textContent=issues.filter(i=>i.status!=="Resolved").length;
+}
+function cycleIssueStatus(id){
+  issues=issues.map(issue=>issue.id!==id?issue:{...issue,status:issue.status==="Open"?"In Progress":issue.status==="In Progress"?"Resolved":"Open",updatedAt:new Date().toISOString()});
+  saveStored(STORAGE.issues,issues);renderAll();toast("Issue status updated.");
+}
+function deleteIssue(id){
+  const issue=issues.find(item=>item.id===id);
+  if(!issue)return;
+  if(!confirm(`Delete ${issue.id}: "${issue.title}"? This cannot be undone.`))return;
+  issues=issues.filter(item=>item.id!==id);
+  saveStored(STORAGE.issues,issues);renderAll();toast("Issue deleted.");
+}
+function askAboutIssue(id){
+  const issue=issues.find(item=>item.id===id);if(!issue)return;
+  navigate("chat");
+  const prompt=`Help me plan the next steps for this customer issue. Title: ${issue.title}. Category: ${issue.category}. Priority: ${issue.priority}. Status: ${issue.status}. Description: ${issue.description}`;
+  sendChat(prompt);
+}
+document.getElementById("issueSearch").addEventListener("input",renderIssues);
+document.getElementById("issueStatusFilter").addEventListener("change",renderIssues);
+document.getElementById("issuePriorityFilter").addEventListener("change",renderIssues);
+document.getElementById("exportIssues").addEventListener("click",()=>{
+  downloadFile("resolveai-issues.csv",toCSV(issues),"text/csv;charset=utf-8;");
+});
+
+/* Knowledge base */
+function articleCard(article){
+  return `<article class="article-card"><div class="article-tags"><span class="pill blue">${esc(article.category)}</span><span class="pill">${esc(article.id||"Custom")}</span></div><h3>${esc(article.title)}</h3><p>${esc(article.body)}</p><div class="article-tags">${String(article.keywords||"").split(",").slice(0,5).map(k=>k.trim()).filter(Boolean).map(k=>`<span class="pill">${esc(k)}</span>`).join("")}</div>${article.custom?`<div style="margin-top:12px"><button class="btn danger sm" onclick="deleteArticle('${esc(article.id)}')">Delete custom article</button></div>`:""}</article>`;
+}
+function renderKnowledge(){
+  const query=normalize(document.getElementById("knowledgeSearch")?.value||"");
+  const category=document.getElementById("knowledgeCategory")?.value||"All";
+  const matches=allArticles().filter(article=>{
+    const text=normalize([article.title,article.category,article.keywords,article.body].join(" "));
+    return (!query||text.includes(query))&&(category==="All"||article.category===category);
+  });
+  document.getElementById("knowledgeResults").innerHTML=matches.length?matches.map(articleCard).join(""):`<div class="empty">No matching knowledge articles found.</div>`;
+}
+document.getElementById("knowledgeSearch").addEventListener("input",renderKnowledge);
+document.getElementById("knowledgeCategory").addEventListener("change",renderKnowledge);
+function openArticleModal(){document.getElementById("articleForm").reset();openModal("articleModal");}
+document.getElementById("articleForm").addEventListener("submit",event=>{
+  event.preventDefault();
+  const article={id:uid("KB"),title:document.getElementById("articleTitle").value.trim(),category:document.getElementById("articleCategory").value,keywords:document.getElementById("articleKeywords").value.trim(),body:document.getElementById("articleBody").value.trim(),updatedAt:new Date().toISOString(),custom:true};
+  if(!article.title||!article.body)return;
+  customArticles.unshift(article);saveStored(STORAGE.articles,customArticles);closeModal("articleModal");renderKnowledge();toast("Knowledge article added.");
+});
+function deleteArticle(id){
+  if(!confirm("Delete this custom article?"))return;
+  customArticles=customArticles.filter(item=>item.id!==id);saveStored(STORAGE.articles,customArticles);renderKnowledge();toast("Article deleted.");
+}
+
+/* Service policies */
+function policyCard(policy){
+  return `<article class="policy-card"><div class="article-tags"><span class="pill blue">${esc(policy.category)}</span>${policy.custom?'<span class="pill">Custom</span>':""}</div><h3>${esc(policy.title)}</h3><p>${esc(policy.body)}</p><div class="tiny muted">Keywords: ${esc(policy.keywords||"not specified")}</div>${policy.custom?`<div style="margin-top:12px"><button class="btn danger sm" onclick="deletePolicy('${esc(policy.id)}')">Delete custom policy</button></div>`:""}</article>`;
+}
+function renderPolicies(){
+  const query=normalize(document.getElementById("policySearch")?.value||"");
+  const category=document.getElementById("policyCategory")?.value||"All";
+  const matches=allPolicies().filter(policy=>normalize([policy.title,policy.category,policy.keywords,policy.body].join(" ")).includes(query)&&(category==="All"||policy.category===category));
+  document.getElementById("policyResults").innerHTML=matches.length?matches.map(policyCard).join(""):`<div class="empty">No matching policies found.</div>`;
+}
+document.getElementById("policySearch").addEventListener("input",renderPolicies);
+document.getElementById("policyCategory").addEventListener("change",renderPolicies);
+function openPolicyModal(){document.getElementById("policyForm").reset();openModal("policyModal");}
+document.getElementById("policyForm").addEventListener("submit",event=>{
+  event.preventDefault();
+  const policy={id:uid("POL"),title:document.getElementById("policyTitle").value.trim(),category:document.getElementById("policyCategoryNew").value,keywords:document.getElementById("policyKeywords").value.trim(),body:document.getElementById("policyBody").value.trim(),custom:true};
+  if(!policy.title||!policy.body)return;
+  customPolicies.unshift(policy);saveStored(STORAGE.policies,customPolicies);closeModal("policyModal");renderPolicies();toast("Policy added. Verify it before real-world use.");
+});
+function deletePolicy(id){
+  if(!confirm("Delete this custom policy?"))return;
+  customPolicies=customPolicies.filter(item=>item.id!==id);saveStored(STORAGE.policies,customPolicies);renderPolicies();toast("Policy deleted.");
+}
+
+/* Chat assistant: local knowledge retrieval plus broad built-in explanations.
+   A real, general-purpose LLM requires a backend connection. */
+const GENERAL_KNOWLEDGE = [
+ {keywords:["rag","retrieval augmented generation","vector database","embeddings"],title:"RAG explained",answer:"Retrieval-Augmented Generation (RAG) combines search with text generation. First, documents are split into chunks and converted into searchable representations (often embeddings). When a question arrives, the system retrieves relevant chunks and supplies them as context to a language model. The model drafts an answer using that evidence. Good RAG systems show sources, enforce document permissions, evaluate retrieval quality, and admit when the sources do not contain the answer."},
+ {keywords:["artificial intelligence","what is ai","define ai"],title:"Artificial intelligence",answer:"Artificial intelligence (AI) is the field of building systems that perform tasks such as recognizing patterns, understanding language, planning, predicting outcomes, or generating content. AI is an umbrella term. Machine learning is one approach within AI, and deep learning is a family of machine-learning methods based on neural networks. AI systems can be useful, but their outputs need evaluation and human oversight for important decisions."},
+ {keywords:["machine learning","what is ml","supervised learning","unsupervised learning"],title:"Machine learning",answer:"Machine learning is a branch of AI where a model learns patterns from examples rather than relying only on hand-written rules. Supervised learning uses labelled examples; unsupervised learning looks for structure in unlabelled data; reinforcement learning learns from feedback or rewards. A good workflow defines the goal, prepares representative data, splits training and test data, evaluates suitable metrics, checks for bias and leakage, and monitors performance after deployment."},
+ {keywords:["generative ai","large language model","llm","chatgpt","transformer"],title:"Generative AI and LLMs",answer:"Generative AI produces new content, such as text, images, audio, or code. A large language model (LLM) is trained to predict and generate sequences of tokens. It can summarize, explain, classify, and draft text, but it may also hallucinate, misunderstand context, or produce outdated information. Grounding answers in trusted sources, evaluating outputs, protecting data, and using human review are important in business workflows."},
+ {keywords:["customer service","customer support","improve customer experience","customer satisfaction"],title:"Customer service best practices",answer:"Strong customer service starts by listening carefully and acknowledging the customer's concern. Ask only necessary clarifying questions, use plain language, explain the next step, and give realistic expectations. Keep records accurate, protect customer data, and avoid promising outcomes that have not been verified. Track metrics such as customer satisfaction, first response time, resolution time, reopen rate, and escalation rate, while remembering that metrics should support—not replace—customer outcomes."},
+ {keywords:["html","css","javascript","website","web development"],title:"Web development basics",answer:"HTML provides the structure of a web page, CSS controls layout and visual presentation, and JavaScript adds behavior such as form validation, navigation, search, and dynamic updates. A single-file prototype is easy to run locally, but production applications generally separate frontend and backend code, validate data on the server, use authentication and access controls, and avoid putting secret API keys in browser code."},
+ {keywords:["sql","database","dbms","normalization","acid"],title:"Database fundamentals",answer:"A database stores and organizes data so it can be queried and updated. SQL is commonly used with relational databases through tables, keys, and relationships. Normalization reduces avoidable duplication and update anomalies. ACID describes transaction properties: atomicity, consistency, isolation, and durability. Choose data structures and indexes based on query patterns, protect access, validate input, back up data, and test recovery procedures."},
+ {keywords:["python","programming language"],title:"Python overview",answer:"Python is a general-purpose programming language known for readable syntax and a broad ecosystem. It is commonly used in automation, data analysis, AI, web development, and scripting. Core concepts include variables, types, conditions, loops, functions, modules, exceptions, and classes. For reliable projects, write small functions, handle errors, use virtual environments, manage dependencies, add tests, and keep secrets out of source code."},
+ {keywords:["api","rest api","backend","frontend"],title:"APIs and application architecture",answer:"An API defines how software components communicate. A common web architecture has a browser frontend, a backend service, and a database. The frontend sends requests to the backend; the backend validates input, checks permissions, performs business logic, and returns a response. Use HTTPS, authentication, authorization, rate limiting, careful error handling, and server-side secret storage. Never trust browser-supplied values for access control."},
+ {keywords:["privacy","personal data","password","otp","security","cybersecurity"],title:"Privacy and security",answer:"Protect customer information by collecting only what is necessary, limiting access, and following approved retention rules. Never ask users to reveal passwords, one-time codes, or complete payment credentials. Use secure authentication, authorization, encryption in transit, server-side validation, monitoring, and an incident-response plan. This demo stores data in browser LocalStorage, which is not appropriate for sensitive production records."},
+ {keywords:["angry customer","upset customer","apology","complaint response"],title:"Responding to an upset customer",answer:"A calm response can follow five steps: acknowledge the customer's experience, apologize for the inconvenience where appropriate, restate the issue to confirm understanding, explain the next action, and set a realistic expectation for the next update. Avoid blaming the customer, arguing, or promising an unverified outcome. If the case is urgent, sensitive, or outside your authority, escalate it to a human agent."},
+ {keywords:["first response time","resolution rate","csat","sla","kpi","analytics"],title:"Customer support metrics",answer:"First response time measures how long customers wait for an initial reply. Time to resolution measures how long it takes to resolve a case. CSAT captures customer satisfaction, while reopen and escalation rates can indicate unresolved problems or workflow friction. An SLA defines a service commitment. Establish consistent definitions, segment by issue complexity, and interpret metrics with qualitative feedback."},
+ {keywords:["prompt engineering","prompt"],title:"Prompt engineering",answer:"Prompt engineering is the practice of writing instructions and context that help a model produce a useful response. Specify the task, audience, constraints, desired format, and relevant evidence. For support workflows, include approved policy text and tell the model not to invent eligibility or timelines. Test prompts against realistic and adversarial examples, and measure accuracy rather than relying on a few impressive demos."},
+ {keywords:["agentic ai","ai agent","agent"],title:"AI agents",answer:"An AI agent is a system that uses a model to interpret a goal and select steps or tools to pursue it. A support agent might search a knowledge base, summarize a case, draft a response, or propose an escalation. Tools should have narrow permissions, actions should be logged, and consequential actions should require confirmation or human approval. A chatbot that only returns text is not automatically a fully autonomous agent."},
+ {keywords:["hallucination","incorrect answer","accuracy"],title:"AI reliability and hallucinations",answer:"A hallucination is an AI-generated claim that sounds plausible but is unsupported or incorrect. Reduce risk by retrieving trusted sources, asking for citations, using structured data where possible, testing against known answers, and having the assistant state uncertainty. For payments, refunds, legal matters, safety, or account changes, verify the facts in authoritative systems and use human review."}
+];
+
+function retrieveArticles(message, limit=3){
+  const words=normalize(message).split(/[^a-z0-9+#]+/).filter(word=>word.length>2);
+  return allArticles().map(article=>{
+    const title=normalize(article.title), body=normalize(article.body), keywords=normalize(article.keywords);
+    let score=0;
+    words.forEach(word=>{
+      if(title.includes(word))score+=5;
+      if(keywords.includes(word))score+=3;
+      if(body.includes(word))score+=1;
+    });
+    return {article,score};
+  }).filter(item=>item.score>0).sort((a,b)=>b.score-a.score).slice(0,limit);
+}
+function retrievePolicies(message, limit=2){
+  const words=normalize(message).split(/[^a-z0-9+#]+/).filter(word=>word.length>2);
+  return allPolicies().map(policy=>{
+    let score=0;const title=normalize(policy.title),body=normalize(policy.body),keywords=normalize(policy.keywords);
+    words.forEach(word=>{if(title.includes(word))score+=5;if(keywords.includes(word))score+=3;if(body.includes(word))score+=1;});
+    return {policy,score};
+  }).filter(item=>item.score>1).sort((a,b)=>b.score-a.score).slice(0,limit);
+}
+function findGeneralKnowledge(message){
+  const text=normalize(message);
+  return GENERAL_KNOWLEDGE.map(item=>{
+    let score=0;
+    item.keywords.forEach(keyword=>{if(text.includes(normalize(keyword)))score+=normalize(keyword).length>8?4:2;});
+    return {...item,score};
+  }).sort((a,b)=>b.score-a.score).find(item=>item.score>0);
+}
+function formatRetrieved(message){
+  const matches=retrieveArticles(message,3);
+  if(!matches.length)return "";
+  return "\n\nRelevant knowledge references:\n"+matches.map(({article},i)=>`${i+1}. ${article.title} (${article.category}): ${article.body}`).join("\n\n");
+}
+function responseStyle(text){
+  if(settings.replyStyle==="concise"){
+    const sentences=text.split(/(?<=[.!?])\s+/);
+    return sentences.slice(0,4).join(" ");
+  }
+  if(settings.replyStyle==="formal"){
+    return text.replace(/\bHi\b/g,"Hello").replace(/\bHey\b/g,"Hello");
+  }
+  return text;
+}
+function buildAnswer(message){
+  const text=normalize(message);
+  const articles=retrieveArticles(message,3);
+  const policies=retrievePolicies(message,2);
+  let answer="";
+  const explicit= findGeneralKnowledge(message);
+
+  if(/\b(hello|hi|hey|good morning|good afternoon|namaste)\b/.test(text)){
+    answer="Hello! I'm "+(settings.assistantName||"ResolveAI")+". I can explain many common topics using my built-in knowledge, search this demo's help articles and policy examples, suggest troubleshooting steps, draft customer replies, and help plan issue resolution.\n\nWhat would you like to know?";
+  } else if(/\b(who are you|what can you do|your features|help me)\b/.test(text)){
+    answer="I'm "+(settings.assistantName||"ResolveAI")+", a customer-support prototype. I can:\n• Explain general concepts such as AI, RAG, programming, databases, and customer service.\n• Suggest steps for delivery, refund, account, payment, and technical issues.\n• Search the local knowledge base and example service policies.\n• Draft polite customer responses and troubleshooting checklists.\n• Help summarize an issue and suggest whether it should be escalated.\n\nLimitations: I do not have live internet access, real company records, or a connected language model in this file. For current or account-specific facts, verify the official source.";
+  } else if(/\b(refund|return|money back|cancel order)\b/.test(text)){
+    answer="Suggested resolution — refund or return:\n1. Confirm the order reference through the authorized system.\n2. Check the actual seller policy, purchase date, product category, and item condition.\n3. Explain the request process and any required evidence.\n4. Give a timeline only after confirming it in the official policy.\n5. Escalate disputed or unusual cases to an authorized human agent.\n\nThis prototype cannot approve or issue a refund.";
+  } else if(/\b(delivery|delayed|late order|tracking|shipment|parcel|package)\b/.test(text)){
+    answer="Suggested resolution — delivery:\n1. Check the official tracking page and estimated delivery date.\n2. Confirm the delivery address and latest carrier update.\n3. If the parcel is overdue, create a case with the order reference and tracking details.\n4. Ask the delivery team to investigate.\n5. Share only verified updates; do not promise an unconfirmed delivery date.\n\nI cannot access live shipment data from this demo.";
+  } else if(/\b(payment|charged|deducted|bank|transaction|payment failed)\b/.test(text)){
+    answer="Suggested resolution — payment:\n1. Check order status and payment history in the authorized system.\n2. Save the transaction reference, date, and amount if appropriate.\n3. Never ask the customer for an OTP, PIN, password, or full card details.\n4. If funds appear deducted but the order is unpaid, contact the official payment provider or payments team.\n5. Track the case until the discrepancy is explained.";
+  } else if(/\b(login|log in|password|account locked|can't access|cannot access|otp)\b/.test(text)){
+    answer="Suggested resolution — account access:\n1. Confirm the customer is using the correct registered username or email.\n2. Use the official account recovery flow.\n3. Follow the approved identity verification process.\n4. Never ask for a password or OTP.\n5. Escalate persistent lockouts or suspected account compromise to the security/support team.";
+  } else if(/\b(human agent|speak to a person|manager|escalate|urgent complaint)\b/.test(text)){
+    answer="This case may need a human support agent. Recommended handoff:\n1. Summarize the problem and desired outcome.\n2. Record the issue reference and steps already attempted.\n3. Mark priority based on actual impact and the team's criteria.\n4. Route it to the authorized team.\n\nI cannot contact a real agent from this prototype, but you can create a tracked case in Issue Management.";
+  } else if(/\b(write|draft|compose|reply|response|email|apology)\b/.test(text)&&/\b(customer|client|complaint|delay|refund|problem|issue|angry|delivery)\b/.test(text)){
+    answer="Here is a professional response template you can adapt:\n\nHello,\n\nThank you for contacting our support team. I'm sorry for the inconvenience this issue has caused. I understand that this is important to you.\n\nWe will review the details and follow the applicable process. If further information is needed, we will let you know. We will share an update once the relevant details have been verified.\n\nThank you for your patience.\n\nKind regards,\nCustomer Support Team\n\nBefore sending, replace general wording with verified case details and the company's approved commitments.";
+  } else if(explicit){
+    answer=explicit.answer;
+  } else if(articles.length){
+    answer="I found relevant local knowledge that may help:\n\n"+articles.map(({article},i)=>`${i+1}. ${article.title}\n${article.body}`).join("\n\n");
+    if(policies.length)answer+="\n\nRelated policy references:\n"+policies.map(({policy})=>`• ${policy.title}: ${policy.body}`).join("\n");
+    answer+="\n\nIf this does not match your situation, tell me a little more about the goal or error message.";
+  } else {
+    answer="I can help think through this question, but this browser-only prototype does not connect to a live general-purpose AI model or the internet. I don't want to invent facts.\n\nTry one of these options:\n• Ask a built-in topic: AI, machine learning, RAG, LLMs, APIs, Python, SQL, privacy, support metrics, or customer service.\n• Search the Knowledge Base for a related article.\n• Add approved reference material to the Knowledge Base.\n• Connect a secure backend and language-model API if you want broad, open-ended AI answers.\n\nFor current, private, or account-specific information, consult an authoritative source.";
+  }
+
+  if(settings.showSources && articles.length && !/Relevant knowledge references:/.test(answer)){
+    answer+="\n\nKnowledge references: "+articles.slice(0,2).map(x=>x.article.title).join("; ")+".";
+  }
+  return responseStyle(answer);
+}
+function appendMessage(text,role,save=true){
+  const container=document.getElementById("chatMessages");
+  const message=document.createElement("div");
+  message.className="message "+(role==="user"?"user":"");
+  const avatar=document.createElement("div");avatar.className="message-avatar";avatar.textContent=role==="user"?"You":"✧";
+  const wrap=document.createElement("div");
+  const body=document.createElement("div");body.className="message-body";body.textContent=text;
+  const time=document.createElement("div");time.className="message-time";time.textContent=(role==="user"?"You":settings.assistantName||"ResolveAI")+" · "+new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"});
+  wrap.append(body,time);message.append(avatar,wrap);container.appendChild(message);container.scrollTop=container.scrollHeight;
+  if(save){chatHistory.push({role,text,at:new Date().toISOString()});if(chatHistory.length>100)chatHistory=chatHistory.slice(-100);saveStored(STORAGE.chat,chatHistory);}
+}
+let aiBackendOnline = false;
+let chatBusy = false;
+
+async function checkAIConnection(){
+  const pill=document.getElementById("aiModePill");
+  const status=document.getElementById("aiStatusText");
+  const statusValue=document.getElementById("llmStatusValue");
+  const note=document.getElementById("aiCapabilityNote");
+  try{
+    const response=await fetch("/api/health",{headers:{"Accept":"application/json"}});
+    if(!response.ok)throw new Error("Backend unavailable");
+    const data=await response.json();
+    aiBackendOnline=Boolean(data.ok && data.aiConfigured);
+    if(aiBackendOnline){
+      pill.textContent="LIVE LLM + RAG";pill.className="pill green";
+      status.textContent="Secure AI backend connected";
+      statusValue.textContent="Connected";statusValue.className="pill green";
+      note.textContent="Live language-model answers with project-aware retrieval. Sources are shown when relevant.";
+    }else{
+      pill.textContent="BACKEND READY";pill.className="pill yellow";
+      status.textContent="Backend online · API key not configured";
+      statusValue.textContent="API key needed";statusValue.className="pill yellow";
+      note.textContent="Add your API key to the server .env file to enable live LLM answers. Local fallback remains available.";
+    }
+  }catch(error){
+    aiBackendOnline=false;
+    pill.textContent="LOCAL DEMO";pill.className="pill yellow";
+    status.textContent="Local knowledge mode";
+    statusValue.textContent="Not connected";statusValue.className="pill yellow";
+    note.textContent="Start the Node.js backend and configure your API key for broad, open-ended AI answers. Local fallback is active.";
+  }
+}
+
+function getProjectContext(){
+  return {
+    projectName:"ResolveAI — AI-Based Customer Service Resolution Agent",
+    purpose:"An academic customer-support resolution prototype combining issue management, AI support chat, knowledge base, service policies, analytics, feedback and settings/data backup.",
+    modules:[
+      "Dashboard: total/open/resolved cases and resolution rate, recent cases, shortcuts.",
+      "Issue Management: create, edit, search, filter, prioritize, assign, change status, delete, export CSV, and ask AI about a case.",
+      "AI Support Chat: conversational assistant, prompt suggestions, conversation history, local fallback and connected LLM mode.",
+      "Knowledge Base: built-in and custom help articles across delivery, refunds, payments, accounts, technical support, AI and service quality.",
+      "Service Policies: illustrative policy references that must be replaced with approved organization policies.",
+      "Analytics: case resolution rate, priority, status and category charts.",
+      "Feedback Center: collect ratings and comments and view averages.",
+      "Settings & Data: workspace preferences, JSON backup/import/reset, AI connection guidance.",
+      "About Project: technology stack and prototype limitations."
+    ],
+    stack:"HTML5, CSS3, JavaScript ES6, browser LocalStorage; optional Node.js/Express backend, OpenAI Responses API and embeddings-based retrieval (RAG).",
+    limitations:"Browser-only mode has no live LLM, company-system integrations, authenticated users or secure shared database. Example policies are not binding."
+  };
+}
+
+async function sendChat(message){
+  const clean=String(message||"").trim();
+  if(!clean || chatBusy)return;
+  appendMessage(clean,"user");
+  const sendButton=document.getElementById("sendChat");
+  chatBusy=true;if(sendButton)sendButton.disabled=true;
+  const typing=document.createElement("div");
+  typing.className="message";typing.id="aiTyping";
+  typing.innerHTML='<div class="message-avatar">✧</div><div class="message-body">Thinking…</div>';
+  document.getElementById("chatMessages").appendChild(typing);
+  document.getElementById("chatMessages").scrollTop=document.getElementById("chatMessages").scrollHeight;
+  try{
+    const response=await fetch("/api/chat",{
+      method:"POST",
+      headers:{"Content-Type":"application/json","Accept":"application/json"},
+      body:JSON.stringify({
+        message:clean,
+        history:chatHistory.filter(item=>item.role==="user"||item.role==="assistant").slice(-12),
+        projectContext:getProjectContext(),
+        localKnowledge:allArticles().map(a=>({id:a.id,title:a.title,category:a.category,body:a.body,keywords:a.keywords})),
+        localPolicies:allPolicies().map(p=>({id:p.id,title:p.title,category:p.category,body:p.body,keywords:p.keywords})),
+        issues:issues.map(i=>({id:i.id,title:i.title,category:i.category,status:i.status,priority:i.priority,description:i.description,resolution:i.resolution})).slice(0,30),
+        replyStyle:settings.replyStyle||"helpful"
+      })
+    });
+    const data=await response.json().catch(()=>({}));
+    if(!response.ok)throw new Error(data.error||"AI backend request failed");
+    typing.remove();
+    let answer=data.answer||"I couldn't generate an answer. Please try again.";
+    if(data.sources?.length && settings.showSources){
+      answer+="\n\nSources used:\n"+data.sources.map(s=>"• "+s.title+(s.id?" ("+s.id+")":"")).join("\n");
+    }
+    appendMessage(answer,"assistant");
+    aiBackendOnline=Boolean(data.mode==="llm");
+    if(data.mode==="llm"){
+      document.getElementById("aiModePill").textContent="LIVE LLM + RAG";
+      document.getElementById("aiModePill").className="pill green";
+    }else{
+      document.getElementById("aiModePill").textContent="BACKEND FALLBACK";
+      document.getElementById("aiModePill").className="pill yellow";
+    }
+  }catch(error){
+    typing.remove();
+    // If the app is opened as a standalone HTML file, use the original local assistant.
+    const fallback=buildAnswer(clean);
+    appendMessage(fallback+"\n\n[Local fallback: "+(location.protocol==="file:"?"Open this project through the Node.js server to enable live AI.":"The AI service is temporarily unavailable.")+"]","assistant");
+  }finally{
+    chatBusy=false;if(sendButton)sendButton.disabled=false;
+  }
+}
+document.getElementById("chatForm").addEventListener("submit",event=>{
+  event.preventDefault();
+  const input=document.getElementById("chatInput");
+  const text=input.value.trim();if(!text)return;
+  sendChat(text);input.value="";input.style.height="auto";input.focus();
+});
+document.getElementById("chatInput").addEventListener("keydown",event=>{
+  if(event.key==="Enter"&&!event.shiftKey){event.preventDefault();document.getElementById("chatForm").requestSubmit();}
+});
+document.getElementById("chatInput").addEventListener("input",event=>{
+  event.target.style.height="auto";event.target.style.height=Math.min(event.target.scrollHeight,140)+"px";
+});
+document.querySelectorAll("[data-prompt]").forEach(button=>button.addEventListener("click",()=>{navigate("chat");sendChat(button.dataset.prompt);}));
+document.getElementById("clearChat").addEventListener("click",()=>{
+  if(!confirm("Clear this conversation history?"))return;
+  chatHistory=[];saveStored(STORAGE.chat,chatHistory);
+  document.getElementById("chatMessages").innerHTML="";
+  appendMessage("Conversation cleared. What would you like help with next?","assistant");
+});
+
+/* Dashboard and analytics */
+function renderDashboard(){
+  const total=issues.length, resolved=issues.filter(i=>i.status==="Resolved").length, open=issues.filter(i=>i.status!=="Resolved").length;
+  document.getElementById("statTotal").textContent=total;
+  document.getElementById("statOpen").textContent=open;
+  document.getElementById("statResolved").textContent=resolved;
+  document.getElementById("statRate").textContent=(total?Math.round(resolved/total*100):0)+"%";
+  document.getElementById("navOpenCount").textContent=open;
+  const recent=issues.slice(0,4);
+  document.getElementById("dashboardRecent").innerHTML=recent.length?recent.map(issueCard).join(""):`<div class="empty"><div class="empty-icon">✦</div><strong>Your workspace is ready</strong><p class="small">Create an issue to see it here.</p><button class="btn sm" onclick="openIssueModal()">Create first issue</button></div>`;
+}
+function barChart(data, labelKey, valueKey){
+  if(!data.length)return '<div class="empty">No data to display yet.</div>';
+  const max=Math.max(1,...data.map(item=>item[valueKey]));
+  return `<div class="chart-bars">${data.map(item=>`<div class="chart-bar-wrap" title="${esc(item[labelKey])}: ${item[valueKey]}"><div class="chart-bar" style="height:${Math.max(4,item[valueKey]/max*100)}%"></div><div class="chart-label">${esc(item[labelKey])}</div></div>`).join("")}</div>`;
+}
+function renderAnalytics(){
+  const total=issues.length,resolved=issues.filter(i=>i.status==="Resolved").length;
+  const open=issues.filter(i=>i.status==="Open").length,progress=issues.filter(i=>i.status==="In Progress").length;
+  const high=issues.filter(i=>i.priority==="High"||i.priority==="Urgent").length;
+  const rate=total?Math.round(resolved/total*100):0;
+  const categories={};const priorities={Low:0,Medium:0,High:0,Urgent:0};
+  issues.forEach(i=>{categories[i.category]=(categories[i.category]||0)+1;priorities[i.priority]=(priorities[i.priority]||0)+1;});
+  document.getElementById("analyticsRate").textContent=rate+"%";
+  document.getElementById("rateBar").style.width=rate+"%";
+  document.getElementById("analyticsHigh").textContent=high;
+  document.getElementById("analyticsProgress").textContent=progress;
+  document.getElementById("analyticsCategories").textContent=Object.keys(categories).length;
+  document.getElementById("analyticsOpen").textContent=open;
+  document.getElementById("analyticsResolved").textContent=resolved;
+  document.getElementById("analyticsTotal").textContent=total;
+  document.getElementById("categoryChart").innerHTML=barChart(Object.entries(categories).map(([name,value])=>({name,value})).sort((a,b)=>b.value-a.value),"name","value");
+  document.getElementById("statusChart").innerHTML=barChart([{name:"Open",value:open},{name:"Progress",value:progress},{name:"Resolved",value:resolved}],"name","value");
+  document.getElementById("priorityBreakdown").innerHTML=Object.entries(priorities).map(([name,value])=>`<div class="kpi-row"><span>${esc(name)}</span><strong>${value}</strong></div><div class="progress"><span style="width:${total?value/total*100:0}%"></span></div>`).join("");
+}
+document.getElementById("refreshAnalytics").addEventListener("click",()=>{renderAnalytics();toast("Analytics refreshed.");});
+
+/* Feedback */
+document.getElementById("feedbackForm").addEventListener("submit",event=>{
+  event.preventDefault();
+  const item={id:uid("FB"),name:document.getElementById("feedbackName").value.trim()||"Anonymous",rating:Number(document.getElementById("feedbackRating").value),topic:document.getElementById("feedbackTopic").value,comment:document.getElementById("feedbackText").value.trim(),createdAt:new Date().toISOString()};
+  if(!item.comment){toast("Please add a comment.","error");return;}
+  feedback.unshift(item);saveStored(STORAGE.feedback,feedback);event.target.reset();renderFeedback();toast("Thank you for your feedback.");
+});
+function renderFeedback(){
+  const average=feedback.length?feedback.reduce((sum,item)=>sum+Number(item.rating||0),0)/feedback.length:0;
+  document.getElementById("feedbackAverage").textContent=feedback.length?average.toFixed(1)+" / 5":"—";
+  const counts=[5,4,3,2,1].map(rating=>({rating,count:feedback.filter(item=>Number(item.rating)===rating).length}));
+  document.getElementById("feedbackSummary").innerHTML=`<p class="small muted">${feedback.length} feedback response(s)</p>`+counts.map(item=>`<div class="kpi-row"><span>${"★".repeat(item.rating)}${"☆".repeat(5-item.rating)}</span><strong>${item.count}</strong></div><div class="progress"><span style="width:${feedback.length?item.count/feedback.length*100:0}%"></span></div>`).join("");
+  document.getElementById("feedbackList").innerHTML=feedback.length?feedback.slice(0,8).map(item=>`<div class="article-card"><div class="issue-title-row"><strong>${esc(item.name)}</strong><span class="pill yellow">${"★".repeat(item.rating)}${"☆".repeat(5-item.rating)}</span></div><div class="tiny muted">${esc(item.topic)} · ${dateLabel(item.createdAt)}</div><p>${esc(item.comment)}</p></div>`).join(""):`<div class="empty">No feedback submitted yet.</div>`;
+}
+
+/* Settings and data backup */
+function renderSettings(){
+  document.getElementById("displayName").value=settings.displayName||"Support Workspace";
+  document.getElementById("assistantName").value=settings.assistantName||"ResolveAI";
+  document.getElementById("replyStyle").value=settings.replyStyle||"helpful";
+  document.getElementById("showSources").checked=settings.showSources!==false;
+}
+document.getElementById("saveSettings").addEventListener("click",()=>{
+  settings={displayName:document.getElementById("displayName").value.trim()||"Support Workspace",assistantName:document.getElementById("assistantName").value.trim()||"ResolveAI",replyStyle:document.getElementById("replyStyle").value,showSources:document.getElementById("showSources").checked};
+  saveStored(STORAGE.settings,settings);
+  document.querySelector(".user-meta strong").textContent=settings.displayName;
+  toast("Preferences saved.");
+});
+function downloadFile(filename,content,type="application/json"){
+  const blob=new Blob([content],{type});
+  const url=URL.createObjectURL(blob);
+  const anchor=document.createElement("a");anchor.href=url;anchor.download=filename;
+  document.body.appendChild(anchor);anchor.click();anchor.remove();URL.revokeObjectURL(url);
+}
+function toCSV(rows){
+  if(!rows.length)return "No data\n";
+  const headers=Object.keys(rows[0]);
+  const cell=value=>`"${String(value??"").replace(/"/g,'""')}"`;
+  return [headers.map(cell).join(","),...rows.map(row=>headers.map(key=>cell(row[key])).join(","))].join("\r\n");
+}
+document.getElementById("exportBackup").addEventListener("click",()=>{
+  const data={format:"ResolveAI backup",version:2,exportedAt:new Date().toISOString(),issues,customArticles,customPolicies,feedback,settings,chatHistory};
+  downloadFile("resolveai-backup.json",JSON.stringify(data,null,2));
+  toast("Backup downloaded.");
+});
+document.getElementById("importBackup").addEventListener("click",()=>{
+  const file=document.getElementById("importFile").files[0];
+  if(!file){toast("Choose a JSON backup file first.","error");return;}
+  const reader=new FileReader();
+  reader.onload=()=>{
+    try{
+      const data=JSON.parse(reader.result);
+      if(!data||typeof data!=="object"||!Array.isArray(data.issues))throw new Error("Invalid backup");
+      if(!confirm("Importing will replace the current local demo data. Continue?"))return;
+      issues=data.issues;
+      customArticles=Array.isArray(data.customArticles)?data.customArticles:[];
+      customPolicies=Array.isArray(data.customPolicies)?data.customPolicies:[];
+      feedback=Array.isArray(data.feedback)?data.feedback:[];
+      settings=data.settings&&typeof data.settings==="object"?data.settings:settings;
+      chatHistory=Array.isArray(data.chatHistory)?data.chatHistory:[];
+      saveStored(STORAGE.issues,issues);saveStored(STORAGE.articles,customArticles);saveStored(STORAGE.policies,customPolicies);saveStored(STORAGE.feedback,feedback);saveStored(STORAGE.settings,settings);saveStored(STORAGE.chat,chatHistory);
+      renderAll();renderSettings();toast("Backup imported successfully.");
+    }catch(error){toast("Could not import this file. Check that it is a valid ResolveAI JSON backup.","error");}
+  };
+  reader.readAsText(file);
+});
+document.getElementById("resetData").addEventListener("click",()=>{
+  if(!confirm("This will permanently remove all local ResolveAI issues, custom articles, policies, feedback, preferences, and chat history. Export a backup first if needed. Continue?"))return;
+  Object.values(STORAGE).forEach(key=>{try{localStorage.removeItem(key);}catch{}});
+  issues=[];customArticles=[];customPolicies=[];feedback=[];chatHistory=[];
+  settings={displayName:"Support Workspace",assistantName:"ResolveAI",replyStyle:"helpful",showSources:true};
+  document.getElementById("chatMessages").innerHTML="";
+  appendMessage("Hello! I'm ResolveAI. Your local demo data has been reset. How can I help?","assistant");
+  renderAll();renderSettings();toast("Local demo data reset.");
+});
+
+/* General rendering and startup */
+function renderAll(){
+  renderDashboard();renderIssues();renderKnowledge();renderPolicies();renderAnalytics();renderFeedback();
+}
+function restoreChat(){
+  if(!chatHistory.length)return;
+  const container=document.getElementById("chatMessages");
+  container.innerHTML="";
+  chatHistory.slice(-40).forEach(item=>{
+    const message=document.createElement("div");
+    message.className="message "+(item.role==="user"?"user":"");
+    const avatar=document.createElement("div");avatar.className="message-avatar";avatar.textContent=item.role==="user"?"You":"✧";
+    const wrap=document.createElement("div");
+    const body=document.createElement("div");body.className="message-body";body.textContent=item.text;
+    const time=document.createElement("div");time.className="message-time";time.textContent=(item.role==="user"?"You":settings.assistantName||"ResolveAI")+" · "+dateLabel(item.at);
+    wrap.append(body,time);message.append(avatar,wrap);container.appendChild(message);
+  });
+  container.scrollTop=container.scrollHeight;
+}
+function init(){
+  checkAIConnection();
+  document.querySelector(".user-meta strong").textContent=settings.displayName||"Support Workspace";
+  renderAll();renderSettings();restoreChat();
+}
+init();
+
+/* Keyboard shortcuts */
+document.addEventListener("keydown",event=>{
+  if(event.key==="Escape"){
+    document.querySelectorAll(".modal-backdrop.open").forEach(modal=>modal.classList.remove("open"));
+    document.getElementById("sidebar").classList.remove("open");
+  }
+  if((event.metaKey||event.ctrlKey)&&event.key.toLowerCase()==="k"){
+    event.preventDefault();navigate("chat");document.getElementById("chatInput").focus();
+  }
+});
+</script>
+</body>
+</html>
